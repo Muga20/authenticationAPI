@@ -1,12 +1,6 @@
-const Users = require("../models/user/users");
-const { body, validationResult } = require("express-validator");
+const Users = require("../models/users");
 require("dotenv").config();
-const Roles = require("../models/user/roles");
-const bcrypt = require("bcrypt");
-const cloudinary = require("cloudinary").v2;
-
-
-
+const Roles = require("../models/roles");
 
 
 const getUsers = async (req, res) => {
@@ -26,6 +20,7 @@ const getUsers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const getUserById = async (req, res) => {
   try {

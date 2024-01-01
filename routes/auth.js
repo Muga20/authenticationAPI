@@ -23,7 +23,7 @@ AuthRouter.post("/logout", logout);
 AuthRouter.post("/create-role", createRole);
 AuthRouter.post("/forgot_password", forgotPassword);
 AuthRouter.post("/reset_password/:token", resetPassword);
-AuthRouter.get("/get-roles", verifyToken, isAdmin, getRoles);
+AuthRouter.get("/get-roles", verifyToken, getRoles);
 AuthRouter.delete("/delete_roles/:id", verifyToken, isAdmin, deleteRole);
 AuthRouter.post("/create_users_roles", create_users_roles);
 

@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const db = require("../../config/config");
+const db = require("../config/config");
 const crypto = require("crypto");
 const Roles = require("./roles");
 
@@ -18,6 +18,11 @@ const Users = db.define(
 
     last_name: {
       type: DataTypes.STRING,
+    },
+
+    username: {
+      type: DataTypes.STRING,
+      unique: true,
     },
 
     email: {
@@ -44,7 +49,7 @@ const Users = db.define(
     },
 
     refreshToken: {
-      type: DataTypes.STRING, // New column to store the refresh token
+      type: DataTypes.STRING, 
       unique: true,
     },
   },

@@ -1,5 +1,5 @@
 const { body, validationResult } = require("express-validator");
-const Users = require("../models/user/users");
+const Users = require("../models/users");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -8,7 +8,7 @@ require("dotenv").config(); // Load environment variables
 // Extract environment variables
 const host = process.env.HOST;
 const port = process.env.PORT;
-const secure = process.env.SECURE === "true";
+const secure = process.env.SECURE;
 const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
 
@@ -83,11 +83,10 @@ const resetPassword = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-
   // getting information from the frontend form when a client enter the password
   const { newPassword, confirmPassword } = req.body;
   const { token } = req.params;
-// verifying the two password match
+  // verifying the two password match
   if (newPassword === confirmPassword) {
     try {
       // Verify the JWT token
@@ -97,7 +96,7 @@ const resetPassword = async (req, res) => {
 
       // Encrypt the new password and update the user's password in the database
       const encryptPassword = await bcrypt.hash(newPassword, 10);
-// updating the password based on the id this means the currently logged in user
+      // updating the password based on the id this means the currently logged in user
       const updatedUser = await Users.update(
         { password: encryptPassword },
         { where: { id: userId } }

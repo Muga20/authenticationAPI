@@ -10,13 +10,9 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 
 require("dotenv").config();
+
 // this process.end lines of code are conceals information for the application stored in the .env file
 const baseUrl = process.env.BASE_URL;
-const host = process.env.HOST;
-const port = process.env.PORT;
-const secure = process.env.SECURE === "true";
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
 
 
 const register = async (req, res) => {
