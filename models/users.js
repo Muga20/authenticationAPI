@@ -43,11 +43,6 @@ const Users = db.define(
       defaultValue: true,
     },
 
-    registrationToken: {
-      type: DataTypes.STRING,
-      unique: true,
-    },
-
     refreshToken: {
       type: DataTypes.STRING, 
       unique: true,
@@ -55,11 +50,6 @@ const Users = db.define(
   },
   {
     freezeTableName: true,
-    hooks: {
-      beforeCreate: (user) => {
-        user.registrationToken = crypto.randomBytes(32).toString("hex");
-      },
-    },
   }
 );
 
