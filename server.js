@@ -5,12 +5,11 @@ const db = require("./config/config");
 require("dotenv").config();
 const AuthRouter = require("./routes/auth");
 const UserRoute = require("./routes/users");
-const http = require("http");
 
 // Create an Express application
 const app = express();
 const PORT = process.env.EXP_PORT;
-const server = http.createServer(app);
+
 
 // Middleware for parsing request bodies here:
 app.use(express.json());
@@ -18,7 +17,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Create an HTTP server
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 

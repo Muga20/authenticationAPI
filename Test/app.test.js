@@ -1,4 +1,4 @@
-const db = require('./config/config'); 
+const db = require('../config/config'); 
 
 describe('Database Connection Test', () => {
   it('should establish a database connection', async () => {
