@@ -37,3 +37,6 @@ db.authenticate()
 app.use("/auth", AuthRouter);
 app.use("/user", UserRoute);
 
+
+module.exports = app; 
+
