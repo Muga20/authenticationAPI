@@ -28,5 +28,4 @@ AuthRouter.delete("/delete_roles/:id", verifyToken, isAdmin, deleteRole);
 AuthRouter.post("/create_users_roles", create_users_roles);
 
 
-
 module.exports = AuthRouter;
