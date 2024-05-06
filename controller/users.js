@@ -25,7 +25,9 @@ const getUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const accessToken = req.user;
-    const user_id = accessToken.userId.id;
+
+    console.log(accessToken)
+    const user_id = accessToken.userId;
 
     const user = await Users.findByPk(user_id, {
       // Fetch the user by primary key (id)

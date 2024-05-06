@@ -1,4 +1,4 @@
-const { login, logout } = require("../authentication/login");
+const { login, logOut } = require("../authentication/login");
 const { register } = require("../authentication/register");
 const {
   getRoles,
@@ -19,7 +19,7 @@ const AuthRouter = express.Router();
 
 AuthRouter.post("/register", register);
 AuthRouter.post("/login", login);
-AuthRouter.post("/logout", logout);
+AuthRouter.post("/logout", logOut);
 AuthRouter.post("/create-role", createRole);
 AuthRouter.post("/forgot_password", forgotPassword);
 AuthRouter.post("/reset_password/:token", resetPassword);

@@ -1,6 +1,7 @@
 const Roles = require("../models/roles");
 const { body, validationResult } = require("express-validator");
 const Users = require("../models/users");
+const { validateNames } = require('../utils/validation');
 
 // Define a function to retrieve all roles
 const getRoles = async (req, res) => {
@@ -20,29 +21,32 @@ const getRoles = async (req, res) => {
 const createRole = async (req, res) => {
   const { RoleName, RoleNumber } = req.body;
 
-  if (!RoleName ||  !RoleNumber) {
-    return res.status(400).json({success: false, message: "An error occurred while creating the roles"});
+  // Validation checks for RoleName
+  if (!validateNames(RoleName)) {
+    return res.status(400).json({ error: 'Invalid Role Name' });
   }
 
   try {
+    // Check if a role with the same name already exists
+    const existingRole = await Roles.findOne({ where: { role: RoleName } });
+    if (existingRole) {
+      return res.status(400).json({ error: 'Role Name already exists' });
+    }
+
     // Create a new role in the database
     const role = await Roles.create({
       role: RoleName,
       role_number: RoleNumber,
     });
 
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // If there are validation errors, respond with a 400 status and the error array
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     // Respond with a JSON object containing the created role
     res.json({ data: role });
+
   } catch (error) {
-    // Handle server errors by responding with a 500 status and an error message
-    res.status(500).json({ error: error.message });
+    // Handle errors during role creation
+    console.error("Error creating role:", error);
+    // Provide a more informative error response
+    res.status(500).json({ error: "An error occurred while creating the role." });
   }
 };
 

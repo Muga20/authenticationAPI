@@ -41,13 +41,18 @@ The authentication system in this application is based on JSON Web Tokens (JWT),
 
 To enhance the application's security and manage user permissions, consider implementing user roles. Roles can define different levels of access and functionalities within the application. Here's how you can incorporate roles:
 
-1. **Define Roles (`/auth/create_users_roles`):**
+1. **First seed the roles by using this command:**
+   - In your terminal run `node seeders/rolesSeeder.js`.
+
+2. **Define Roles (`/auth/create_users_roles`):**
    - Create an endpoint or functionality to define roles (admin, user, verified) within the application.
    - Roles can determine what users can access or modify.
-2. **Checking available Roles (`/auth/get-roles`):**
-  - To access this endpoint and retrieve available roles, the user making the request must have either the 'admin' or 'verified' role assigned.
+
+3. **Checking available Roles (`/auth/get-roles`):**
+   - To access this endpoint and retrieve available roles, the user making the request must have either the 'admin' or 'verified' role assigned.
    - Roles define user access and permissions.
-3. **Assign Roles to Users:**
+
+4. **Assign Roles to Users:**
    - After defining roles, create a mechanism to assign roles to registered users.
    - Users can have specific roles that define their access levels and permissions.
 

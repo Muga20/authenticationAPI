@@ -22,12 +22,9 @@ let refreshTokens = [];
  * If the token is valid, it calls the next middleware or route handler.
  * Otherwise, it responds with the appropriate error status.
  */
-const verifyToken = (req, res, next) => {
-  // const { authorization } = req.headers;
-
+const verifyToken = async (req, res, next) => {
   const authorization = req.header("Authorization");
 
-  // Add a failedAttempts property to the request object
   if (!req.failedAttempts) {
     req.failedAttempts = 0;
   }
@@ -38,41 +35,50 @@ const verifyToken = (req, res, next) => {
 
   const token = authorization.split(" ")[1];
   try {
-    // Verify the access token using the ACCESS_TOKEN_SECRET
-    const user = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    const decodedToken = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    req.user = decodedToken;
 
-    // Attach the decoded user data to the req object
-    req.user = user;
+    // Extract user ID from the token
+    const userId = decodedToken.userId;
 
-    // Check if the token has expired
     const nowInSeconds = Date.now() / 1000;
-    if (user.exp < nowInSeconds) {
-      // Check if there is a refresh token in the request
+    if (decodedToken.exp < nowInSeconds) {
       const refreshToken = req.headers["x-refresh-token"];
       if (!refreshToken) {
         return res
-          .status(401)
-          .json({ error: "Token has expired. Please reauthenticate." });
+            .status(401)
+            .json({ error: "Token has expired. Please reauthenticate." });
       }
 
-      // Attempt to refresh the access token using the refresh token
       try {
-        // Verify the refresh token using the REFRESH_TOKEN_SECRET to get the userId
-        const { userId } = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+        const decodedRefreshToken = jwt.verify(
+            refreshToken,
+            REFRESH_TOKEN_SECRET
+        );
 
-        // Generate a new access token with the updated user data and set it in the req.user
-        const accessToken = issueAccessToken(userId).accessToken;
-        req.user = jwt.verify(accessToken, ACCESS_TOKEN_SECRET); // Update the user data in the request
+        const user = await User.findById(userId);
+
+        if (!user) {
+          return res.status(401).json({ error: "User not found" });
+        }
+
+        const newAccessToken = jwt.sign(
+            { userId: user._id },
+            ACCESS_TOKEN_SECRET,
+            { expiresIn: TOKEN_EXPIRATION_TIME }
+        );
+
+        req.user = user;
+
+        res.set("Authorization", `Bearer ${newAccessToken}`);
+
         next();
       } catch (error) {
-        return res
-          .status(401)
-          .json({
-            error: "Invalid or expired refresh token. Please reauthenticate.",
-          });
+        return res.status(401).json({
+          error: "Invalid or expired refresh token. Please reauthenticate.",
+        });
       }
     } else {
-      // Reset the failedAttempts counter if token verification is successful
       req.failedAttempts = 0;
       next();
     }
@@ -81,21 +87,18 @@ const verifyToken = (req, res, next) => {
     req.failedAttempts++;
 
     try {
-      // Check if the user has reached the maximum allowed failed attempts
       if (req.failedAttempts >= MAX_ALLOWED_FAILED_ATTEMPTS) {
-        // Suspend the user's account for a day (24 hours)
         const suspensionTimeInMilliseconds = 24 * 60 * 60 * 1000;
         const suspensionEndTime = Date.now() + suspensionTimeInMilliseconds;
 
         return res.status(403).json({
           error:
-            "Too many failed attempts. Your account is suspended for a day.",
+              "Too many failed attempts. Your account is suspended for a day.",
         });
       }
 
       res.status(401).json({ error: "Request is not authorized" });
     } catch (error) {
-      // Handle any errors that occur during suspension processing
       console.error("Suspension Error:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
@@ -107,19 +110,15 @@ const verifyToken = (req, res, next) => {
  * The token is signed using the ACCESS_TOKEN_SECRET and its expiration is set based on TOKEN_EXPIRATION_TIME.
  * It also calls issueRefreshToken(userId) to generate a new refresh token and returns both tokens as an object.
  */
-const issueAccessToken = (userId, email, registrationToken, role) => {
-  const accessToken = jwt.sign(
-    { userId, email, registrationToken, role },
-    ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: TOKEN_EXPIRATION_TIME,
-    }
-  );
 
-  // Generate a new refresh token for the provided userId and return both tokens
-  const refreshToken = issueRefreshToken(userId);
-  return { accessToken, refreshToken };
+
+const issueAccessToken = (userId) => {
+  // Sign the JWT with the user identifier
+  return jwt.sign({ userId }, ACCESS_TOKEN_SECRET, {
+    expiresIn: TOKEN_EXPIRATION_TIME,
+  });
 };
+
 
 /**
  * Function to issue a new refresh token for the specified userId.
@@ -127,6 +126,7 @@ const issueAccessToken = (userId, email, registrationToken, role) => {
  * The refresh token is stored in the refreshTokens array for later blacklisting (optional).
  */
 const issueRefreshToken = (userId) => {
+
   const refreshToken = jwt.sign({ userId }, REFRESH_TOKEN_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRATION_TIME,
   });

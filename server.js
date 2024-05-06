@@ -6,14 +6,19 @@ require("dotenv").config();
 const AuthRouter = require("./routes/auth");
 const UserRoute = require("./routes/users");
 
+const corsOptions = {
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+    optionsSuccessStatus: 200,
+};
+
 // Create an Express application
 const app = express();
 const PORT = process.env.EXP_PORT;
 
-
 // Middleware for parsing request bodies here:
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // Create an HTTP server

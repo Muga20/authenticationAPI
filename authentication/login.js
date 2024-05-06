@@ -6,20 +6,16 @@ const bcrypt = require("bcrypt");
 
 require("dotenv").config();
 const { issueAccessToken, issueRefreshToken } = require("../middleware/auth");
+const {validatePassword} = require("../utils/validation");
 
 const login = async (req, res) => {
   try {
-    // Validate emailOrUsername and password using express-validator
-    await body("emailOrUsername").isLength({ min: 3 }).trim().escape().run(req);
-    await body("password").isLength({ min: 6 }).run(req);
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // If there are validation errors, return a 400 status with the error details
-      return res.status(400).json({ errors: errors.array() });
-    }
 
     const { emailOrUsername, password } = req.body;
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ error: 'Invalid Password' });
+    }
 
     // Check if the user exists in the database by searching for the provided emailOrUsername
     const user = await Users.findOne({
@@ -46,33 +42,24 @@ const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // If the password is correct, proceed with user login
 
-    // Create a data object containing all user properties except password and registrationToken
-    const data = {
-      id: user.id,
-      roles: user.roles.map((role) => role.role),
-    };
-
-    // Issue the access token with the user data (excluding password and registrationToken)
-    const accessToken = issueAccessToken(data);
-
-    // Issue a new refresh token and update the user's refresh token in the database
-    const refreshToken = issueRefreshToken(data.id);
+    const accessToken = issueAccessToken( user.id,);
+    const refreshToken = issueRefreshToken(  user.id );
 
     user.refreshToken = refreshToken;
 
     await user.save();
 
-    // Set the user data in an HTTP-only cookie
-    res.cookie("user", JSON.stringify(data), {
-      httpOnly: true, // Set the HttpOnly attribute
+    res.cookie('user_session', accessToken, {
+      maxAge: 7200000,
+      httpOnly: true,
+      secure: false,
     });
 
-    // Return the access token in the response
     res.json({
-      accessToken,
+      success: true, message: 'logged in successfully'
     });
+
   } catch (error) {
     // Handle any unexpected errors that occur during login
     console.error("Error in login:", error);
@@ -80,18 +67,13 @@ const login = async (req, res) => {
   }
 };
 
-const logout = async (req, res) => {
-  res
-    .clearCookie("user", {
-      secure: true,
-      sameSite: "none",
+const logOut = async (req, res) => {
+  res.cookie('user_session', 'none', {
+    expires: new Date(Date.now() + 5 * 1000),
+    httpOnly: true,
+  })
+      .status(200)
+      .json({success: true, message: 'Logged out successfully'})
+}
 
-    })
-    .status(200)
-    .json({
-      success: true,
-      message: "succesfuly logged  out",
-    });
-};
-
-module.exports = { login, logout };
+module.exports = { login, logOut };
